@@ -22,7 +22,7 @@ node cli/makefun.mjs grade-local --kit <kit-dir> --bot . --driver process
 
 ## Strategy
 
-- **Buy** the whole cash balance when the 30-minute return is at or below −0.8%, the last 5 minutes have stopped falling (5-minute return ≥ 0), and the 240-minute trend is not deeply negative (≥ −2%).
+- **Buy** the whole cash balance when the 30-minute return is at or below −0.8%, the last 5 minutes have stopped falling (5-minute return ≥ 0), and the 240-minute trend is not deeply negative (≥ −2%). A deeper plunge — 60-minute return at or below −1.2% — buys without waiting for the turn-up confirmation.
 - **Sell** everything at +2.0% above the entry cost, −1.0% below it, −1.0% below the highest close since entry, or 240 bars after entry, whichever comes first.
 - **Cooldown** 20 bars after any exit before the next buy.
 - **Late fallback:** after bar 1300, if still flat and the 60-minute return is at or below −0.8%, buy once, so the bot always takes at least one trade.

@@ -12,6 +12,8 @@
 //   * BUY the whole cash balance when the 30-minute return is at or below -0.8%,
 //     the last 5 minutes have stopped falling (5-minute return >= 0), and the
 //     240-minute trend is not deeply negative (240-minute return >= -2%).
+//     A deeper plunge — 60-minute return at or below -1.2% — buys without
+//     waiting for the turn-up confirmation.
 //   * SELL everything when the close is +2.0% above the entry cost (take profit),
 //     -1.0% below it (stop), -1.0% below the highest close since entry (trailing
 //     stop), or 240 bars after entry (max hold).
@@ -51,6 +53,8 @@ const COOLDOWN_BARS = 20; // bars to wait after an exit before buying again
 const LATE_BAR = 1300; // after this bar, the fallback dip buy may fire
 const FALLBACK_WINDOW = 60; // minutes over which the fallback dip is measured
 const FALLBACK_BPS = -80; // fallback buy when the 60-minute return is <= -0.80%
+const PLUNGE_WINDOW = 60; // minutes over which a deep plunge is measured
+const PLUNGE_BPS = -120; // deep-plunge buy when the 60-minute return is <= -1.20%
 
 // Return of the latest close against the close `bars` minutes ago, in bps,
 // or null when there is not enough history yet.
@@ -127,6 +131,16 @@ await runBars({
       if (turnedUp && trendOk) {
         return buyAll(state);
       }
+    }
+
+    // Deep-plunge tier: a 60-minute drop of 1.2% or more is itself the signal —
+    // the thin pool snaps back hard after plunges that sharp, so no turn-up
+    // confirmation is needed. Same exits bound the trade. This tier never
+    // fired on the dev window (its deepest 60-minute drop was -1.34% while the
+    // bot was already long), but it cuts the loss on a falling window.
+    const plunge = returnBps(history, PLUNGE_WINDOW);
+    if (plunge !== null && plunge <= PLUNGE_BPS) {
+      return buyAll(state);
     }
 
     // Late fallback: make sure the bot takes at least one trade even on a
